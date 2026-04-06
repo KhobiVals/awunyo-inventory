@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS POS Preview</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'DM Sans', 'Segoe UI', sans-serif;
+            background: #0d0f14;
+            color: #e8eaf0;
+        }
+        .preview-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .preview-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .preview-header h1 {
+            color: #6366f1;
+            margin-bottom: 10px;
+        }
+        .preview-note {
+            background: #1e2230;
+            border: 1px solid #2a2f3e;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .preview-note h3 {
+            color: #f59e0b;
+            margin-top: 0;
+        }
+        .code-preview {
+            background: #151820;
+            border: 1px solid #2a2f3e;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .stat-card {
+            background: #151820;
+            border: 1px solid #2a2f3e;
+            border-radius: 16px;
+            padding: 20px;
+        }
+        .stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #10b981;
+            margin-bottom: 4px;
+        }
+        .stat-label {
+            color: #6b7280;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="preview-container">
+        <div class="preview-header">
+            <h1>🛒 NEXUS POS System Preview</h1>
+            <p>Point of Sale & Inventory Management System</p>
+        </div>
+
+        <div class="preview-note">
+            <h3>📋 Preview Mode</h3>
+            <p>This is a static preview of the NEXUS POS system. The full interactive version requires a React development environment.</p>
+            <p><strong>Features:</strong> Dashboard, Point of Sale, Inventory Management, Sales History, Customer Management, Reports</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-value">12</div>
+                <div class="stat-label">Active Products</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">3</div>
+                <div class="stat-label">Registered Customers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">5</div>
+                <div class="stat-label">Today's Sales</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">2</div>
+                <div class="stat-label">Stock Alerts</div>
+            </div>
+        </div>
+
+        <div class="code-preview">
+            <h4>📁 Project Structure (After Separation)</h4>
+            <pre><code>src/
+├── components/          # Reusable UI components
+│   ├── Icon.jsx        # SVG icon component
+│   ├── Sidebar.jsx     # Navigation sidebar
+│   ├── Notification.jsx # Toast notifications
+│   └── DashboardView.jsx # Dashboard view component
+├── data/               # Static data and constants
+│   ├── products.js     # Product inventory data
+│   ├── customers.js    # Customer data
+│   ├── sales.js        # Sales transaction data
+│   └── constants.js    # Categories and suppliers
+├── hooks/              # Custom React hooks
+│   └── usePOS.js       # POS logic and state management
+├── styles/             # CSS styles
+│   └── global.css      # Global styles and CSS variables
+├── App.jsx             # Main application component
+└── index.js            # Application entry point</code></pre>
+
+            <h4>🔧 Technologies Used</h4>
+            <ul>
+                <li><strong>React:</strong> Frontend framework with hooks</li>
+                <li><strong>JavaScript (ES6+):</strong> Modern JavaScript features</li>
+                <li><strong>JSX:</strong> UI markup syntax</li>
+                <li><strong>CSS:</strong> Styling with CSS variables for theming</li>
+                <li><strong>SVG:</strong> Inline SVG icons</li>
+            </ul>
+
+            <h4>✨ Key Features</h4>
+            <ul>
+                <li>📊 Real-time dashboard with sales analytics</li>
+                <li>🛒 Point of Sale with cart management</li>
+                <li>📦 Inventory tracking with low stock alerts</li>
+                <li>👥 Customer management with loyalty points</li>
+                <li>📈 Sales reporting and history</li>
+                <li>🌓 Dark mode toggle</li>
+                <li>📱 Responsive design</li>
+            </ul>
+        </div>
+
+        <div class="preview-note">
+            <h3>🚀 To Run the Full Application:</h3>
+            <ol>
+                <li>Install Node.js and npm</li>
+                <li>Run <code>npm install</code> in the project directory</li>
+                <li>Run <code>npm start</code> to launch the development server</li>
+                <li>Open <code>http://localhost:3000</code> in your browser</li>
+            </ol>
+        </div>
+    </div>
+
+    <script type="text/babel">
+        // This would be the React component code
+        // For preview purposes, we're showing a static version
+        console.log('NEXUS POS Preview Loaded');
+    </script>
+</body>
+</html>

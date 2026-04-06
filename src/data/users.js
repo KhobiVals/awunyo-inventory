@@ -1,0 +1,32 @@
+export const USERS = [
+  {
+    id: "U001",
+    name: "Super Admin",
+    email: "superadmin@nexuspos.com",
+    password: "super123",
+    role: "superadmin",
+    avatar: "SA",
+    allowedViews: ["dashboard", "pos", "inventory", "sales", "customers", "suppliers", "reports", "settings"],
+    canDeleteUsers: true,
+  },
+  {
+    id: "U002",
+    name: "Admin User",
+    email: "admin@nexuspos.com",
+    password: "admin123",
+    role: "admin",
+    avatar: "AU",
+    allowedViews: ["dashboard", "pos", "inventory", "sales", "customers", "suppliers", "reports", "settings"],
+    canDeleteUsers: false,
+  },
+  {
+    id: "U003",
+    name: "Sales Associate",
+    email: "sales@nexuspos.com",
+    password: "sales123",
+    role: "sales",
+    avatar: "SA",
+    allowedViews: ["pos", "customers"],
+    canDeleteUsers: false,
+  },
+];

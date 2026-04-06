@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEXUS POS - Live Preview</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: 'DM Sans', 'Segoe UI', sans-serif;
+        }
+        #root {
+            min-height: 100vh;
+        }
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: #0d0f14;
+            color: #e8eaf0;
+            font-size: 18px;
+        }
+        .loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #2a2f3e;
+            border-top: 2px solid #6366f1;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 12px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div id="root">
+        <div class="loading">
+            <div class="loading-spinner"></div>
+            Loading NEXUS POS System...
+        </div>
+    </div>
+
+    <script type="text/babel">
+        // Mock data
+        const INITIAL_PRODUCTS = [
+            { id: "P001", name: "Coca-Cola 500ml", sku: "BEV-001", barcode: "5449000000996", category: "Beverages", price: 3.5, cost: 2.0, stock: 120, reorderLevel: 20, unit: "bottle", supplier: "SUP001", image: "🥤" },
+            { id: "P002", name: "Indomie Noodles", sku: "FD-002", barcode: "8992388201015", category: "Food", price: 2.0, cost: 1.2, stock: 8, reorderLevel: 15, unit: "pack", supplier: "SUP002", image: "🍜" },
+            { id: "P003", name: "Sunlight Soap 200g", sku: "HH-003", barcode: "6001087379482", category: "Household", price: 4.5, cost: 2.8, stock: 55, reorderLevel: 10, unit: "bar", supplier: "SUP001", image: "🧼" },
+            { id: "P004", name: "Milo 400g Tin", sku: "BEV-004", barcode: "5000159407236", category: "Beverages", price: 18.0, cost: 12.0, stock: 32, reorderLevel: 8, unit: "tin", supplier: "SUP003", image: "🫙" },
+            { id: "P005", name: "Ariel Powder 1kg", sku: "HH-005", barcode: "8006540891636", category: "Household", price: 12.5, cost: 8.0, stock: 3, reorderLevel: 5, unit: "pack", supplier: "SUP001", image: "🧺" },
+        ];
+
+        const INITIAL_CUSTOMERS = [
+            { id: "C001", name: "John Mensah", phone: "0244123456", email: "john@email.com", loyaltyPoints: 450, totalSpent: 1250.0, joinDate: "2024-01-15" },
+            { id: "C002", name: "Ama Owusu", phone: "0551234567", email: "ama@email.com", loyaltyPoints: 1200, totalSpent: 3800.0, joinDate: "2023-08-20" },
+            { id: "C003", name: "Kweku Asante", phone: "0241234567", email: "kweku@email.com", loyaltyPoints: 80, totalSpent: 220.0, joinDate: "2025-02-10" },
+        ];
+
+        const INITIAL_SALES = [
+            { id: "S20001", date: "2026-03-22", time: "09:15", cashier: "admin", items: [{ name: "Coca-Cola 500ml", qty: 3, price: 3.5 }, { name: "Indomie Noodles", qty: 2, price: 2.0 }], subtotal: 14.5, tax: 1.45, discount: 0, total: 15.95, payment: "cash", customer: "John Mensah" },
+            { id: "S20002", date: "2026-03-22", time: "10:32", cashier: "cashier1", items: [{ name: "Milo 400g Tin", qty: 1, price: 18.0 }, { name: "Peak Milk 170g", qty: 4, price: 3.8 }], subtotal: 33.2, tax: 3.32, discount: 5, total: 31.52, payment: "mobile_money", customer: "Walk-in" },
+        ];
+
+        const CATEGORIES = ["All", "Beverages", "Food", "Household", "Healthcare"];
+        const SUPPLIERS = [
+            { id: "SUP001", name: "Unilever Ghana Ltd", contact: "0302123456", email: "orders@unilever.com.gh" },
+            { id: "SUP002", name: "Nestlé Ghana", contact: "0302234567", email: "supply@nestle.com.gh" },
+            { id: "SUP003", name: "Tobinco Enterprises", contact: "0302345678", email: "info@tobinco.com" },
+        ];
+
+        // Icon component
+        const Icon = ({ name, size = 18 }) => {
+            const icons = {
+                pos: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('rect', { x: "2", y: "3", width: "20", height: "14", rx: "2" }),
+                    React.createElement('path', { d: "M8 21h8M12 17v4" })
+                ),
+                dashboard: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('rect', { x: "3", y: "3", width: "7", height: "7" }),
+                    React.createElement('rect', { x: "14", y: "3", width: "7", height: "7" }),
+                    React.createElement('rect', { x: "14", y: "14", width: "7", height: "7" }),
+                    React.createElement('rect', { x: "3", y: "14", width: "7", height: "7" })
+                ),
+                inventory: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('path', { d: "M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" })
+                ),
+                customers: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('path', { d: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" }),
+                    React.createElement('circle', { cx: "9", cy: "7", r: "4" }),
+                    React.createElement('path', { d: "M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" })
+                ),
+                reports: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('polyline', { points: "22 12 18 12 15 21 9 3 6 12 2 12" })
+                ),
+                settings: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('circle', { cx: "12", cy: "12", r: "3" }),
+                    React.createElement('path', { d: "M19.07 4.93l-1.41 1.41M4.93 4.93l1.41 1.41M4.93 19.07l1.41-1.41M19.07 19.07l-1.41-1.41M12 2v2M12 20v2M2 12h2M20 12h2" })
+                ),
+                cart: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('circle', { cx: "9", cy: "21", r: "1" }),
+                    React.createElement('circle', { cx: "20", cy: "21", r: "1" }),
+                    React.createElement('path', { d: "M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" })
+                ),
+                plus: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('line', { x1: "12", y1: "5", x2: "12", y2: "19" }),
+                    React.createElement('line', { x1: "5", y1: "12", x2: "19", y2: "12" })
+                ),
+                minus: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('line', { x1: "5", y1: "12", x2: "19", y2: "12" })
+                ),
+                search: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('circle', { cx: "11", cy: "11", r: "8" }),
+                    React.createElement('line', { x1: "21", y1: "21", x2: "16.65", y2: "16.65" })
+                ),
+                check: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('polyline', { points: "20 6 9 17 4 12" })
+                ),
+                alert: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('path', { d: "M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" }),
+                    React.createElement('line', { x1: "12", y1: "9", x2: "12", y2: "13" }),
+                    React.createElement('line', { x1: "12", y1: "17", x2: "12.01", y2: "17" })
+                ),
+                star: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "currentColor", stroke: "currentColor", strokeWidth: "1" },
+                    React.createElement('polygon', { points: "12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" })
+                ),
+                receipt: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('path', { d: "M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z" }),
+                    React.createElement('line', { x1: "8", y1: "10", x2: "16", y2: "10" }),
+                    React.createElement('line', { x1: "8", y1: "14", x2: "16", y2: "14" })
+                ),
+                user: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('path', { d: "M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" }),
+                    React.createElement('circle', { cx: "12", cy: "7", r: "4" })
+                ),
+                logout: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('path', { d: "M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" }),
+                    React.createElement('polyline', { points: "16 17 21 12 16 7" }),
+                    React.createElement('line', { x1: "21", y1: "12", x2: "9", y2: "12" })
+                ),
+                x: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('line', { x1: "18", y1: "6", x2: "6", y2: "18" }),
+                    React.createElement('line', { x1: "6", y1: "6", x2: "18", y2: "18" })
+                ),
+                edit: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('path', { d: "M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" }),
+                    React.createElement('path', { d: "M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" })
+                ),
+                download: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('path', { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }),
+                    React.createElement('polyline', { points: "7 10 12 15 17 10" }),
+                    React.createElement('line', { x1: "12", y1: "15", x2: "12", y2: "3" })
+                ),
+                moon: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('path', { d: "M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" })
+                ),
+                sun: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('circle', { cx: "12", cy: "12", r: "5" }),
+                    React.createElement('line', { x1: "12", y1: "1", x2: "12", y2: "3" }),
+                    React.createElement('line', { x1: "12", y1: "21", x2: "12", y2: "23" }),
+                    React.createElement('line', { x1: "4.22", y1: "4.22", x2: "5.64", y2: "5.64" }),
+                    React.createElement('line', { x1: "18.36", y1: "18.36", x2: "19.78", y2: "19.78" }),
+                    React.createElement('line', { x1: "1", y1: "12", x2: "3", y2: "12" }),
+                    React.createElement('line', { x1: "21", y1: "12", x2: "23", y2: "12" }),
+                    React.createElement('line', { x1: "4.22", y1: "19.78", x2: "5.64", y2: "18.36" }),
+                    React.createElement('line', { x1: "18.36", y1: "5.64", x2: "19.78", y2: "4.22" })
+                ),
+                package: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('path', { d: "M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" }),
+                    React.createElement('polyline', { points: "3.27 6.96 12 12.01 20.73 6.96" }),
+                    React.createElement('line', { x1: "12", y1: "22.08", x2: "12", y2: "12" })
+                ),
+                trending: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('polyline', { points: "23 6 13.5 15.5 8.5 10.5 1 18" }),
+                    React.createElement('polyline', { points: "17 6 23 6 23 12" })
+                ),
+                dollar: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('line', { x1: "12", y1: "1", x2: "12", y2: "23" }),
+                    React.createElement('path', { d: "M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" })
+                ),
+                menu: React.createElement('svg', { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2" },
+                    React.createElement('line', { x1: "3", y1: "12", x2: "21", y2: "12" }),
+                    React.createElement('line', { x1: "3", y1: "6", x2: "21", y2: "6" }),
+                    React.createElement('line', { x1: "3", y1: "18", x2: "21", y2: "18" })
+                ),
+            };
+            return icons[name] || null;
+        };
+
+        // Main App Component (Simplified version)
+        function NexusPOS() {
+            const [darkMode, setDarkMode] = React.useState(true);
+            const [activeView, setActiveView] = React.useState("dashboard");
+            const [products] = React.useState(INITIAL_PRODUCTS);
+            const [sales] = React.useState(INITIAL_SALES);
+            const [customers] = React.useState(INITIAL_CUSTOMERS);
+            const [cart, setCart] = React.useState([]);
+            const [sidebarOpen, setSidebarOpen] = React.useState(true);
+            const [notification, setNotification] = React.useState(null);
+            const [currentUser] = React.useState({ name: "Admin User", role: "admin", avatar: "AU" });
+
+            const showNotification = React.useCallback((msg, type = "success") => {
+                setNotification({ msg, type });
+                setTimeout(() => setNotification(null), 3000);
+            }, []);
+
+            const addToCart = (product) => {
+                if (product.stock === 0) {
+                    showNotification("Out of stock!", "error");
+                    return;
+                }
+                setCart(prev => {
+                    const existing = prev.find(i => i.id === product.id);
+                    if (existing) return prev.map(i => i.id === product.id ? { ...i, qty: i.qty + 1 } : i);
+                    return [...prev, { ...product, qty: 1 }];
+                });
+            };
+
+            const d = darkMode;
+            const bg = d ? "#0d0f14" : "#f0f2f5";
+            const surface = d ? "#151820" : "#ffffff";
+            const surface2 = d ? "#1e2230" : "#f8f9fc";
+            const border = d ? "#2a2f3e" : "#e2e8f0";
+            const text = d ? "#e8eaf0" : "#1a202c";
+            const textMuted = d ? "#6b7280" : "#718096";
+            const accent = "#6366f1";
+            const accentGreen = "#10b981";
+            const accentRed = "#ef4444";
+            const accentAmber = "#f59e0b";
+
+            const styles = { bg, surface, surface2, border, text, textMuted, accent, accentGreen, accentRed, accentAmber, d };
+
+            const lowStock = products.filter(p => p.stock > 0 && p.stock <= p.reorderLevel).length;
+            const outOfStock = products.filter(p => p.stock === 0).length;
+            const todaySales = sales.filter(s => s.date === "2026-03-22");
+            const todayRevenue = todaySales.reduce((sum, s) => sum + s.total, 0);
+
+            return React.createElement('div', {
+                style: {
+                    fontFamily: "'DM Sans', 'Segoe UI', sans-serif",
+                    background: bg,
+                    minHeight: "100vh",
+                    display: "flex",
+                    color: text,
+                    transition: "all 0.3s"
+                }
+            },
+                // Global styles
+                React.createElement('style', {}, `
+                    * { box-sizing: border-box; margin: 0; padding: 0; }
+                    ::-webkit-scrollbar { width: 4px; height: 4px; }
+                    ::-webkit-scrollbar-track { background: transparent; }
+                    ::-webkit-scrollbar-thumb { background: ${border}; border-radius: 2px; }
+                    button { cursor: pointer; border: none; font-family: inherit; }
+                    input, select, textarea { font-family: inherit; outline: none; }
+                    .nav-item { transition: all 0.2s; }
+                    .nav-item:hover { background: rgba(99,102,241,0.12) !important; }
+                    .nav-item.active { background: rgba(99,102,241,0.2) !important; color: ${accent} !important; }
+                    .product-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.15); }
+                    .btn-primary { background: ${accent}; color: #fff; transition: all 0.2s; }
+                    .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+                    .btn-success { background: ${accentGreen}; color: #fff; transition: all 0.2s; }
+                    .btn-success:hover { background: #059669; }
+                    .btn-danger { background: ${accentRed}; color: #fff; transition: all 0.2s; }
+                    .stat-card { transition: all 0.2s; }
+                    .stat-card:hover { transform: translateY(-3px); }
+                    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 1000; backdrop-filter: blur(4px); }
+                    input:focus { border-color: ${accent} !important; }
+                    .pill { display: inline-flex; align-items: center; padding: 2px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+                    .shimmer { background: linear-gradient(90deg, ${surface} 25%, ${surface2} 50%, ${surface} 75%); }
+                `),
+
+                // Notification
+                notification && React.createElement('div', {
+                    style: {
+                        position: "fixed",
+                        top: 16,
+                        right: 16,
+                        zIndex: 9999,
+                        background: notification.type === "success" ? accentGreen : notification.type === "error" ? accentRed : accentAmber,
+                        color: "#fff",
+                        padding: "12px 20px",
+                        borderRadius: 12,
+                        fontWeight: 600,
+                        fontSize: 14,
+                        boxShadow: "0 8px 32px rgba(0,0,0,0.3)",
+                        animation: "slideIn 0.3s ease",
+                        display: "flex",
+                        gap: 8,
+                        alignItems: "center"
+                    }
+                },
+                    React.createElement(Icon, { name: notification.type === "success" ? "check" : "alert", size: 16 }),
+                    notification.msg
+                ),
+
+                // Sidebar
+                React.createElement('aside', {
+                    style: {
+                        width: sidebarOpen ? 220 : 64,
+                        background: surface,
+                        borderRight: `1px solid ${border}`,
+                        display: "flex",
+                        flexDirection: "column",
+                        transition: "width 0.3s ease",
+                        overflow: "hidden",
+                        position: "sticky",
+                        top: 0,
+                        height: "100vh",
+                        flexShrink: 0,
+                        zIndex: 100
+                    }
+                },
+                    // Sidebar Header
+                    React.createElement('div', {
+                        style: {
+                            padding: "20px 16px",
+                            borderBottom: `1px solid ${border}`,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 12,
+                            minHeight: 64
+                        }
+                    },
+                        React.createElement('div', {
+                            style: {
+                                width: 36,
+                                height: 36,
+                                borderRadius: 10,
+                                background: `linear-gradient(135deg, ${accent}, #8b5cf6)`,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                flexShrink: 0,
+                                fontWeight: 800,
+                                color: "#fff",
+                                fontSize: 14
+                            }
+                        }, "N"),
+                        sidebarOpen && React.createElement('div', {},
+                            React.createElement('div', { style: { fontWeight: 700, fontSize: 15, letterSpacing: "-0.3px" } }, "NEXUS POS"),
+                            React.createElement('div', { style: { fontSize: 10, color: textMuted, letterSpacing: "1px" } }, "v2.0 ENTERPRISE")
+                        )
+                    ),
+
+                    // Navigation
+                    React.createElement('nav', {
+                        style: {
+                            flex: 1,
+                            padding: "12px 8px",
+                            overflowY: "auto"
+                        }
+                    },
+                        [
+                            { id: "dashboard", icon: "dashboard", label: "Dashboard" },
+                            { id: "pos", icon: "pos", label: "Point of Sale", badge: cart.length || null },
+                            { id: "inventory", icon: "inventory", label: "Inventory", badge: (lowStock + outOfStock) || null },
+                            { id: "sales", icon: "receipt", label: "Sales History" },
+                            { id: "customers", icon: "customers", label: "Customers" },
+                            { id: "reports", icon: "reports", label: "Reports" },
+                            { id: "settings", icon: "settings", label: "Settings" },
+                        ].map(item => React.createElement('button', {
+                            key: item.id,
+                            className: `nav-item ${activeView === item.id ? "active" : ""}`,
+                            onClick: () => setActiveView(item.id),
+                            style: {
+                                width: "100%",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 10,
+                                padding: "10px 12px",
+                                borderRadius: 10,
+                                background: "transparent",
+                                color: activeView === item.id ? accent : textMuted,
+                                marginBottom: 2,
+                                textAlign: "left",
+                                position: "relative"
+                            }
+                        },
+                            React.createElement('span', { style: { flexShrink: 0, display: "flex" } }, React.createElement(Icon, { name: item.icon, size: 18 })),
+                            sidebarOpen && React.createElement('span', { style: { fontSize: 13, fontWeight: 500, whiteSpace: "nowrap" } }, item.label),
+                            item.badge && sidebarOpen && React.createElement('span', {
+                                style: {
+                                    marginLeft: "auto",
+                                    background: accentRed,
+                                    color: "#fff",
+                                    borderRadius: 20,
+                                    padding: "1px 7px",
+                                    fontSize: 10,
+                                    fontWeight: 700
+                                }
+                            }, item.badge),
+                            item.badge && !sidebarOpen && React.createElement('span', {
+                                style: {
+                                    position: "absolute",
+                                    top: 6,
+                                    right: 6,
+                                    width: 8,
+                                    height: 8,
+                                    background: accentRed,
+                                    borderRadius: "50%"
+                                }
+                            })
+                        ))
+                    ),
+
+                    // User Info
+                    React.createElement('div', {
+                        style: {
+                            padding: "12px 8px",
+                            borderTop: `1px solid ${border}`
+                        }
+                    },
+                        React.createElement('div', {
+                            style: {
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 10,
+                                padding: "10px 12px"
+                            }
+                        },
+                            React.createElement('div', {
+                                style: {
+                                    width: 32,
+                                    height: 32,
+                                    borderRadius: 8,
+                                    background: `linear-gradient(135deg, ${accent}, #8b5cf6)`,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    color: "#fff",
+                                    fontSize: 11,
+                                    fontWeight: 700,
+                                    flexShrink: 0
+                                }
+                            }, currentUser.avatar),
+                            sidebarOpen && React.createElement('div', { style: { overflow: "hidden" } },
+                                React.createElement('div', { style: { fontSize: 12, fontWeight: 600, whiteSpace: "nowrap" } }, currentUser.name),
+                                React.createElement('div', { style: { fontSize: 10, color: accentGreen, textTransform: "capitalize" } }, currentUser.role)
+                            )
+                        )
+                    )
+                ),
+
+                // Main Content
+                React.createElement('div', {
+                    style: {
+                        flex: 1,
+                        display: "flex",
+                        flexDirection: "column",
+                        overflow: "hidden",
+                        minWidth: 0
+                    }
+                },
+                    // Topbar
+                    React.createElement('header', {
+                        style: {
+                            background: surface,
+                            borderBottom: `1px solid ${border}`,
+                            padding: "0 20px",
+                            height: 60,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 12,
+                            flexShrink: 0
+                        }
+                    },
+                        React.createElement('button', {
+                            onClick: () => setSidebarOpen(!sidebarOpen),
+                            style: {
+                                background: "transparent",
+                                color: textMuted,
+                                padding: 6,
+                                borderRadius: 8,
+                                display: "flex"
+                            }
+                        }, React.createElement(Icon, { name: "menu", size: 18 })),
+                        React.createElement('div', {
+                            style: {
+                                flex: 1,
+                                fontSize: 16,
+                                fontWeight: 700
+                            }
+                        }, ["dashboard","pos","inventory","sales","customers","reports","settings"].find(v => v === activeView) &&
+                            activeView.charAt(0).toUpperCase() + activeView.slice(1).replace(/_/g," ")),
+                        (lowStock + outOfStock) > 0 && React.createElement('div', {
+                            style: {
+                                display: "flex",
+                                alignItems: "center",
+                                gap: 6,
+                                background: `${accentAmber}20`,
+                                border: `1px solid ${accentAmber}40`,
+                                borderRadius: 20,
+                                padding: "4px 12px",
+                                fontSize: 12,
+                                color: accentAmber,
+                                fontWeight: 600
+                            }
+                        },
+                            React.createElement(Icon, { name: "alert", size: 13 }),
+                            `${lowStock + outOfStock} stock alerts`
+                        ),
+                        React.createElement('button', {
+                            onClick: () => setDarkMode(!d),
+                            style: {
+                                background: surface2,
+                                border: `1px solid ${border}`,
+                                color: text,
+                                padding: "7px",
+                                borderRadius: 8,
+                                display: "flex"
+                            }
+                        }, React.createElement(Icon, { name: d ? "sun" : "moon", size: 16 })),
+                        React.createElement('div', {
+                            style: {
+                                fontSize: 12,
+                                color: textMuted,
+                                fontFamily: "'JetBrains Mono', monospace"
+                            }
+                        }, new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }))
+                    ),
+
+                    // Views - Dashboard for preview
+                    React.createElement('main', {
+                        style: {
+                            flex: 1,
+                            overflowY: "auto",
+                            padding: 20
+                        }
+                    },
+                        React.createElement('div', { style: { marginBottom: 20 } },
+                            React.createElement('div', { style: { fontSize: 22, fontWeight: 700, letterSpacing: "-0.5px" } }, "Good morning! 👋"),
+                            React.createElement('div', { style: { fontSize: 13, color: styles.textMuted, marginTop: 2 } }, "Sunday, March 22, 2026 — Here's your store overview")
+                        ),
+
+                        React.createElement('div', {
+                            style: {
+                                display: "grid",
+                                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                                gap: 16,
+                                marginBottom: 24
+                            }
+                        },
+                            // Stats Cards
+                            React.createElement('div', {
+                                className: "stat-card",
+                                style: {
+                                    background: styles.surface,
+                                    border: `1px solid ${styles.border}`,
+                                    borderRadius: 16,
+                                    padding: "20px",
+                                    position: "relative",
+                                    overflow: "hidden"
+                                }
+                            },
+                                React.createElement('div', {
+                                    style: {
+                                        position: "absolute",
+                                        top: 0,
+                                        right: 0,
+                                        width: 80,
+                                        height: 80,
+                                        background: `${styles.accentGreen}08`,
+                                        borderRadius: "0 0 0 80px"
+                                    }
+                                }),
+                                React.createElement('div', {
+                                    style: {
+                                        display: "flex",
+                                        alignItems: "flex-start",
+                                        justifyContent: "space-between"
+                                    }
+                                },
+                                    React.createElement('div', {},
+                                        React.createElement('div', { style: { fontSize: 12, color: styles.textMuted, fontWeight: 500, marginBottom: 8 } }, "Today's Revenue"),
+                                        React.createElement('div', { style: { fontSize: 26, fontWeight: 700, letterSpacing: "-1px", color: styles.text } }, `GH₵${todayRevenue.toFixed(2)}`),
+                                        React.createElement('div', { style: { fontSize: 12, color: styles.textMuted, marginTop: 4 } }, `${todaySales.length} transactions`)
+                                    ),
+                                    React.createElement('div', {
+                                        style: {
+                                            background: `${styles.accentGreen}15`,
+                                            border: `1px solid ${styles.accentGreen}25`,
+                                            borderRadius: 12,
+                                            padding: 10,
+                                            color: styles.accentGreen
+                                        }
+                                    }, React.createElement(Icon, { name: "dollar", size: 20 }))
+                                )
+                            ),
+
+                            React.createElement('div', {
+                                className: "stat-card",
+                                style: {
+                                    background: styles.surface,
+                                    border: `1px solid ${styles.border}`,
+                                    borderRadius: 16,
+                                    padding: "20px",
+                                    position: "relative",
+                                    overflow: "hidden"
+                                }
+                            },
+                                React.createElement('div', {
+                                    style: {
+                                        position: "absolute",
+                                        top: 0,
+                                        right: 0,
+                                        width: 80,
+                                        height: 80,
+                                        background: `${styles.accent}08`,
+                                        borderRadius: "0 0 0 80px"
+                                    }
+                                }),
+                                React.createElement('div', {
+                                    style: {
+                                        display: "flex",
+                                        alignItems: "flex-start",
+                                        justifyContent: "space-between"
+                                    }
+                                },
+                                    React.createElement('div', {},
+                                        React.createElement('div', { style: { fontSize: 12, color: styles.textMuted, fontWeight: 500, marginBottom: 8 } }, "Total Sales (Week)"),
+                                        React.createElement('div', { style: { fontSize: 26, fontWeight: 700, letterSpacing: "-1px", color: styles.text } }, `GH₵${sales.reduce((sum, sale) => sum + sale.total, 0).toFixed(2)}`),
+                                        React.createElement('div', { style: { fontSize: 12, color: styles.textMuted, marginTop: 4 } }, `${sales.length} orders total`)
+                                    ),
+                                    React.createElement('div', {
+                                        style: {
+                                            background: `${styles.accent}15`,
+                                            border: `1px solid ${styles.accent}25`,
+                                            borderRadius: 12,
+                                            padding: 10,
+                                            color: styles.accent
+                                        }
+                                    }, React.createElement(Icon, { name: "cart", size: 20 }))
+                                )
+                            ),
+
+                            React.createElement('div', {
+                                className: "stat-card",
+                                style: {
+                                    background: styles.surface,
+                                    border: `1px solid ${styles.border}`,
+                                    borderRadius: 16,
+                                    padding: "20px",
+                                    position: "relative",
+                                    overflow: "hidden"
+                                }
+                            },
+                                React.createElement('div', {
+                                    style: {
+                                        display: "flex",
+                                        alignItems: "flex-start",
+                                        justifyContent: "space-between"
+                                    }
+                                },
+                                    React.createElement('div', {},
+                                        React.createElement('div', { style: { fontSize: 12, color: styles.textMuted, fontWeight: 500, marginBottom: 8 } }, "Products"),
+                                        React.createElement('div', { style: { fontSize: 26, fontWeight: 700, letterSpacing: "-1px", color: styles.text } }, products.length),
+                                        React.createElement('div', { style: { fontSize: 12, color: styles.textMuted, marginTop: 4 } }, "Active SKUs")
+                                    ),
+                                    React.createElement('div', {
+                                        style: {
+                                            background: `${styles.accentAmber}15`,
+                                            border: `1px solid ${styles.accentAmber}25`,
+                                            borderRadius: 12,
+                                            padding: 10,
+                                            color: styles.accentAmber
+                                        }
+                                    }, React.createElement(Icon, { name: "package", size: 20 }))
+                                )
+                            ),
+
+                            React.createElement('div', {
+                                className: "stat-card",
+                                style: {
+                                    background: styles.surface,
+                                    border: `1px solid ${styles.border}`,
+                                    borderRadius: 16,
+                                    padding: "20px",
+                                    position: "relative",
+                                    overflow: "hidden"
+                                }
+                            },
+                                React.createElement('div', {
+                                    style: {
+                                        display: "flex",
+                                        alignItems: "flex-start",
+                                        justifyContent: "space-between"
+                                    }
+                                },
+                                    React.createElement('div', {},
+                                        React.createElement('div', { style: { fontSize: 12, color: styles.textMuted, fontWeight: 500, marginBottom: 8 } }, "Stock Alerts"),
+                                        React.createElement('div', { style: { fontSize: 26, fontWeight: 700, letterSpacing: "-1px", color: styles.text } }, lowStock + outOfStock),
+                                        React.createElement('div', { style: { fontSize: 12, color: styles.textMuted, marginTop: 4 } }, `${outOfStock} out of stock`)
+                                    ),
+                                    React.createElement('div', {
+                                        style: {
+                                            background: `${styles.accentRed}15`,
+                                            border: `1px solid ${styles.accentRed}25`,
+                                            borderRadius: 12,
+                                            padding: 10,
+                                            color: styles.accentRed
+                                        }
+                                    }, React.createElement(Icon, { name: "alert", size: 20 }))
+                                )
+                            )
+                        ),
+
+                        React.createElement('div', {
+                            style: {
+                                background: styles.surface,
+                                border: `1px solid ${styles.border}`,
+                                borderRadius: 16,
+                                padding: 20,
+                                marginBottom: 20
+                            }
+                        },
+                            React.createElement('div', {
+                                style: {
+                                    fontWeight: 700,
+                                    marginBottom: 16,
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center"
+                                }
+                            },
+                                "Recent Sales",
+                                React.createElement('button', {
+                                    onClick: () => setActiveView("sales"),
+                                    style: {
+                                        background: "transparent",
+                                        color: styles.accent,
+                                        fontSize: 12,
+                                        fontWeight: 600
+                                    }
+                                }, "View all →")
+                            ),
+                            sales.slice(0, 3).map(sale => React.createElement('div', {
+                                key: sale.id,
+                                style: {
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    padding: "10px 0",
+                                    borderBottom: `1px solid ${styles.border}`
+                                }
+                            },
+                                React.createElement('div', {},
+                                    React.createElement('div', { style: { fontWeight: 600, fontSize: 13 } }, sale.id),
+                                    React.createElement('div', { style: { fontSize: 11, color: styles.textMuted } }, `${sale.time} · ${sale.customer} · ${sale.payment}`)
+                                ),
+                                React.createElement('div', { style: { fontWeight: 700, color: styles.accentGreen, fontSize: 14 } }, `GH₵${sale.total.toFixed(2)}`)
+                            ))
+                        ),
+
+                        React.createElement('div', {
+                            style: {
+                                background: styles.surface,
+                                border: `1px solid ${styles.border}`,
+                                borderRadius: 16,
+                                padding: 20
+                            }
+                        },
+                            React.createElement('div', { style: { fontWeight: 700, marginBottom: 16 } }, "🏆 Top Selling Products"),
+                            products.slice(0, 3).map((product, i) => React.createElement('div', {
+                                key: product.id,
+                                style: {
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 12,
+                                    padding: "8px 0",
+                                    borderBottom: `1px solid ${styles.border}`
+                                }
+                            },
+                                React.createElement('div', {
+                                    style: {
+                                        width: 26,
+                                        height: 26,
+                                        borderRadius: 8,
+                                        background: i === 0 ? `${styles.accentAmber}20` : styles.surface2,
+                                        color: i === 0 ? styles.accentAmber : styles.textMuted,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        fontSize: 11,
+                                        fontWeight: 700
+                                    }
+                                }, `#${i + 1}`),
+                                React.createElement('div', { style: { flex: 1, fontSize: 13, fontWeight: 500 } }, product.name),
+                                React.createElement('div', { style: { fontSize: 13, fontWeight: 700, color: styles.accentGreen } }, `GH₵${product.price.toFixed(0)}`)
+                            ))
+                        )
+                    )
+                )
+            );
+        }
+
+        // Render the app
+        ReactDOM.render(React.createElement(NexusPOS), document.getElementById('root'));
+    </script>
+</body>
+</html>

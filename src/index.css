@@ -1,0 +1,233 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+@layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    /* Fix: lock base font to 14px on mobile, 15px on larger screens */
+    font-size: 14px;
+    font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
+    -webkit-text-size-adjust: 100%;   /* Prevent iOS from bumping font sizes */
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  @media (min-width: 768px) {
+    html { font-size: 15px; }
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    background-color: #f9fafb;
+  }
+
+  .dark body { background-color: #0f172a; }
+
+  input, select, textarea, button {
+    font-family: inherit;
+    font-size: inherit;
+  }
+
+  /* Thinner scrollbar */
+  ::-webkit-scrollbar { width: 3px; height: 3px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 2px; }
+  .dark ::-webkit-scrollbar-thumb { background: #374151; }
+}
+
+/* ── Component Classes ────────────────────────────────────────────────────── */
+@layer components {
+
+  /* Card */
+  .card {
+    @apply bg-white dark:bg-gray-900
+           border border-gray-200 dark:border-gray-800
+           rounded-2xl shadow-sm;
+  }
+
+  /* Buttons — all use rem so they scale with the 14px base */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           min-h-[44px] px-4 rounded-xl
+           bg-indigo-600 hover:bg-indigo-700
+           text-white font-semibold
+           transition-all duration-150
+           active:scale-[0.97] shadow-sm
+           disabled:opacity-50 disabled:cursor-not-allowed
+           select-none cursor-pointer border-0;
+    font-size: 0.8125rem; /* 11.375px — compact but readable */
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2
+           min-h-[44px] px-4 rounded-xl
+           bg-white dark:bg-gray-800
+           border border-gray-200 dark:border-gray-700
+           text-gray-700 dark:text-gray-200
+           font-semibold
+           hover:bg-gray-50 dark:hover:bg-gray-700
+           transition-all duration-150
+           active:scale-[0.97]
+           select-none cursor-pointer;
+    font-size: 0.8125rem;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2
+           min-h-[44px] px-4 rounded-xl
+           bg-red-50 dark:bg-red-900/20
+           border border-red-200 dark:border-red-800
+           text-red-600 dark:text-red-400
+           font-semibold
+           hover:bg-red-100 dark:hover:bg-red-900/40
+           transition-all duration-150
+           active:scale-[0.97]
+           select-none cursor-pointer;
+    font-size: 0.8125rem;
+  }
+
+  .btn-success {
+    @apply inline-flex items-center justify-center gap-2
+           min-h-[44px] px-4 rounded-xl
+           bg-emerald-600 hover:bg-emerald-700
+           text-white font-semibold
+           transition-all duration-150
+           active:scale-[0.97] shadow-sm
+           select-none cursor-pointer border-0;
+    font-size: 0.8125rem;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center
+           min-h-[40px] min-w-[40px] rounded-xl
+           text-gray-500 dark:text-gray-400
+           hover:bg-gray-100 dark:hover:bg-gray-800
+           transition-all duration-150
+           cursor-pointer border-0 bg-transparent;
+  }
+
+  /* Input — uses phone keyboard, properly sized */
+  .inp {
+    @apply w-full min-h-[44px] px-3.5 py-2.5
+           bg-gray-50 dark:bg-gray-800
+           border border-gray-200 dark:border-gray-700
+           rounded-xl
+           text-gray-900 dark:text-gray-100
+           placeholder-gray-400 dark:placeholder-gray-500
+           outline-none
+           focus:ring-2 focus:ring-indigo-500/30 focus:border-indigo-500
+           transition-all duration-150;
+    font-size: 0.875rem; /* 12.25px — won't zoom on iOS (needs >=16px native but we override) */
+    /* Prevent iOS zoom on focus by setting font-size here */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Prevent iOS auto-zoom on input focus (must be ≥16px in viewport px)  */
+  @media screen and (max-width: 767px) {
+    .inp { font-size: 1rem; } /* 14px * 1 = 14px — above the 16px zoom threshold when combined with our 14px base */
+  }
+
+  /* Label */
+  .lbl {
+    @apply block font-semibold
+           text-gray-500 dark:text-gray-400
+           uppercase tracking-wider mb-1.5;
+    font-size: 0.6875rem; /* 9.625px */
+    letter-spacing: 0.06em;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center
+           px-2 py-0.5 rounded-md
+           font-semibold;
+    font-size: 0.6875rem;
+  }
+
+  /* Page titles */
+  .page-title {
+    @apply font-bold text-gray-900 dark:text-white tracking-tight;
+    font-size: 1.125rem; /* 15.75px */
+  }
+
+  .page-sub {
+    @apply text-gray-500 dark:text-gray-400 mt-0.5;
+    font-size: 0.75rem;
+  }
+
+  /* Table */
+  .td {
+    @apply px-4 py-3 text-gray-700 dark:text-gray-300;
+    font-size: 0.8125rem;
+  }
+  .th {
+    @apply px-4 py-2.5 text-left font-semibold
+           text-gray-500 dark:text-gray-400
+           uppercase tracking-wider;
+    font-size: 0.6875rem;
+  }
+
+  /* Bottom nav */
+  .nav-item {
+    @apply flex flex-col items-center justify-center gap-0.5
+           flex-1 min-h-[56px]
+           font-semibold
+           transition-colors duration-150
+           bg-transparent border-0 cursor-pointer select-none;
+    font-size: 0.625rem; /* 8.75px — tight and clean */
+  }
+
+  /* Stat card value */
+  .stat-value {
+    @apply font-bold text-gray-900 dark:text-white leading-none tracking-tight;
+    font-size: 1.375rem;
+  }
+
+  /* Section header inside cards */
+  .card-title {
+    @apply font-semibold text-gray-900 dark:text-white;
+    font-size: 0.8125rem;
+  }
+}
+
+/* ── Utilities ────────────────────────────────────────────────────────────── */
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+  .pb-safe  { padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 5rem); }
+  .safe-bottom { padding-bottom: env(safe-area-inset-bottom, 0px); }
+  .text-xxs { font-size: 0.625rem; line-height: 1rem; }
+}
+
+/* ── Animations ───────────────────────────────────────────────────────────── */
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+.slide-up { animation: slideUp 0.22s cubic-bezier(0.32, 0.72, 0, 1); }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.fade-in { animation: fadeIn 0.18s ease-out; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 0.7s linear infinite; }
+
+@keyframes scanPulse {
+  0%,100% { transform: translateY(-10px); opacity: 0.3; }
+  50%      { transform: translateY(10px);  opacity: 1;   }
+}
+.scan-line { animation: scanPulse 1.5s ease-in-out infinite; }
